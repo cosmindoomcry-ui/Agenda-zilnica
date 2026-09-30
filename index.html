@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenda de azi</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#242F27">
+<link rel="icon" href="icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --paper:#EEF0E9;
+    --paper-shade:#E2E6DA;
+    --card:#F7F8F3;
+    --ink:#242F27;
+    --ink-soft:#5C6A60;
+    --ink-faint:#8B978B;
+    --accent:#C17A2C;
+    --accent-soft:#EAD9BB;
+    --line:#C9CFBD;
+    --danger:#B4523A;
+    --shadow: 0 1px 2px rgba(36,47,39,.06), 0 12px 28px -14px rgba(36,47,39,.28);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#161B17;
+      --paper-shade:#1F2620;
+      --card:#1C231D;
+      --ink:#E8ECE4;
+      --ink-soft:#9CA89C;
+      --ink-faint:#697468;
+      --accent:#E2A754;
+      --accent-soft:#3B3221;
+      --line:#333C33;
+      --danger:#E0846C;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 16px 32px -16px rgba(0,0,0,.6);
+      color-scheme: dark;
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Manrope',system-ui,sans-serif;
+    padding-inline:16px;
+    padding-block:32px;
+  }
+  .wrap{
+    max-width:840px;
+    margin:0 auto;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:20px;
+    padding-bottom:18px;
+    border-bottom:2px solid var(--ink);
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .date-block{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+  }
+  .date-num{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(44px,9vw,64px);
+    line-height:1;
+    letter-spacing:-.02em;
+  }
+  .date-words{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .day-name{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:20px;
+    text-transform:capitalize;
+  }
+  .month-year{
+    font-size:13px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+  }
+  .header-right{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:8px;
+  }
+  [contenteditable="true"]{
+    outline:none;
+  }
+  [contenteditable="true"]:focus{
+    background:var(--accent-soft);
+    border-radius:4px;
+  }
+  .mood-row{
+    display:flex;
+    gap:6px;
+  }
+  .mood-row button{
+    font-size:18px;
+    background:none;
+    border:1px solid var(--line);
+    border-radius:999px;
+    width:32px;height:32px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .mood-row button:hover{transform:translateY(-1px);}
+  .mood-row button.picked{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .toolbar{
+    display:flex;
+    gap:8px;
+  }
+  .toolbar button{
+    font-family:'Manrope',sans-serif;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    background:var(--card);
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    border-radius:7px;
+    padding:7px 11px;
+    cursor:pointer;
+  }
+  .toolbar button:hover{ color:var(--ink); border-color:var(--ink-faint); }
+  #installBtn{
+    background:var(--accent);
+    color:var(--card);
+    border-color:var(--accent);
+  }
+  #installBtn:hover{ color:var(--card); border-color:var(--accent); opacity:.9; }
+
+  /* ---------- layout ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:22px;
+  }
+  @media (max-width:640px){
+    .grid{grid-template-columns:1fr;}
+  }
+  section{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px 18px 20px;
+    box-shadow:var(--shadow);
+  }
+  h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:.02em;
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--ink);
+  }
+  h2 .tag{
+    font-family:'Manrope',sans-serif;
+    font-weight:700;
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:2px 7px;
+    border-radius:5px;
+  }
+
+  /* ---------- schedule ---------- */
+  .schedule-row{
+    display:grid;
+    grid-template-columns:56px 1fr;
+    border-bottom:1px solid var(--line);
+    min-height:34px;
+  }
+  .schedule-row:last-child{border-bottom:none;}
+  .hour{
+    font-size:12px;
+    color:var(--ink-faint);
+    padding:8px 0;
+    font-variant-numeric:tabular-nums;
+  }
+  .slot{
+    padding:8px 4px 8px 10px;
+    border-left:1px solid var(--line);
+    font-size:13.5px;
+    line-height:1.4;
+  }
+  .slot:empty:before{
+    content:attr(data-placeholder);
+    color:var(--ink-faint);
+  }
+
+  /* ---------- priorities ---------- */
+  .priorities{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+    margin-bottom:6px;
+  }
+  .priority{
+    display:grid;
+    grid-template-columns:22px 1fr;
+    gap:10px;
+    align-items:start;
+    border-bottom:1px dashed var(--line);
+    padding-bottom:9px;
+  }
+  .priority:last-child{border-bottom:none;padding-bottom:0;}
+  .priority-num{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    color:var(--accent);
+    font-size:16px;
+  }
+  .priority-text{
+    font-size:13.5px;
+    line-height:1.4;
+    min-height:20px;
+  }
+  .priority-text:empty:before{
+    content:'ce contează cel mai mult azi';
+    color:var(--ink-faint);
+  }
+
+  /* ---------- todo ---------- */
+  .todo-list{
+    list-style:none;
+    margin:0 0 10px;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+  .todo-item{
+    display:grid;
+    grid-template-columns:20px 1fr 22px;
+    align-items:center;
+    gap:9px;
+  }
+  .todo-item input[type="checkbox"]{
+    width:17px;height:17px;
+    accent-color:var(--accent);
+    cursor:pointer;
+  }
+  .todo-item .todo-text{
+    font-size:13.5px;
+    padding:3px 0;
+    border-bottom:1px solid transparent;
+  }
+  .todo-item.done .todo-text{
+    color:var(--ink-faint);
+    text-decoration:line-through;
+    text-decoration-color:var(--ink-faint);
+  }
+  .todo-item .todo-text:empty:before{
+    content:'sarcină nouă…';
+    color:var(--ink-faint);
+  }
+  .todo-remove{
+    background:none;
+    border:none;
+    color:var(--ink-faint);
+    cursor:pointer;
+    font-size:15px;
+    line-height:1;
+    padding:2px;
+  }
+  .todo-remove:hover{color:var(--danger);}
+  .add-todo{
+    background:none;
+    border:1px dashed var(--line);
+    color:var(--ink-soft);
+    border-radius:7px;
+    padding:7px 10px;
+    font-size:12.5px;
+    cursor:pointer;
+    width:100%;
+    text-align:left;
+    font-family:'Manrope',sans-serif;
+  }
+  .add-todo:hover{ border-color:var(--accent); color:var(--accent); }
+
+  /* ---------- notes ---------- */
+  .notes{
+    min-height:90px;
+    font-size:13.5px;
+    line-height:1.6;
+    background-image:repeating-linear-gradient(var(--card),var(--card) 26px, var(--line) 27px, var(--card) 28px);
+  }
+  .notes:empty:before{
+    content:'notițe, idei, orice altceva…';
+    color:var(--ink-faint);
+  }
+
+  footer{
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-faint);
+    margin-top:20px;
+    letter-spacing:.03em;
+  }
+
+  @media print{
+    body{background:#fff;padding:0;}
+    .toolbar,footer{display:none;}
+    section{box-shadow:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="date-block">
+      <div class="date-num" id="dateNum">22</div>
+      <div class="date-words">
+        <div class="day-name" contenteditable="true" id="dayName">marți</div>
+        <div class="month-year" id="monthYear">SEPTEMBRIE 2026</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="mood-row" id="moodRow">
+        <button data-mood="☀️" title="senin">☀️</button>
+        <button data-mood="⛅" title="ok">⛅</button>
+        <button data-mood="🌧️" title="grea">🌧️</button>
+        <button data-mood="🔥" title="pe foc">🔥</button>
+      </div>
+      <div class="toolbar">
+        <button id="installBtn" hidden>Instalează</button>
+        <button id="printBtn">Tipărește</button>
+        <button id="resetBtn">Zi nouă</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="left-col" style="display:flex;flex-direction:column;gap:22px;">
+      <section>
+        <h2>Program <span class="tag">orar</span></h2>
+        <div id="schedule"></div>
+      </section>
+    </div>
+
+    <div class="right-col" style="display:flex;flex-direction:column;gap:22px;">
+      <section>
+        <h2>Priorități <span class="tag">top 3</span></h2>
+        <div class="priorities" id="priorities">
+          <div class="priority"><div class="priority-num">1</div><div class="priority-text" contenteditable="true" data-idx="0"></div></div>
+          <div class="priority"><div class="priority-num">2</div><div class="priority-text" contenteditable="true" data-idx="1"></div></div>
+          <div class="priority"><div class="priority-num">3</div><div class="priority-text" contenteditable="true" data-idx="2"></div></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>De făcut</h2>
+        <ul class="todo-list" id="todoList"></ul>
+        <button class="add-todo" id="addTodo">+ adaugă sarcină</button>
+      </section>
+
+      <section>
+        <h2>Notițe</h2>
+        <div class="notes" contenteditable="true" id="notes"></div>
+      </section>
+    </div>
+  </div>
+
+  <footer>completează-o, salvează-se singură în acest browser</footer>
+</div>
+
+<script>
+(function(){
+  var STORE_KEY = 'agenda-zilnica-v1';
+  var state = null;
+  try {
+    state = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+  } catch(e) { state = null; }
+
+  var today = new Date();
+  var todayKey = today.toISOString().slice(0,10);
+  if (!state || state.dateKey !== todayKey) {
+    state = {
+      dateKey: todayKey,
+      dayName: '',
+      mood: null,
+      priorities: ['','',''],
+      todos: [
+        {text:'', done:false},
+        {text:'', done:false},
+        {text:'', done:false}
+      ],
+      notes: '',
+      schedule: {}
+    };
+  }
+
+  function save(){
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  var dayNames = ['duminică','luni','marți','miercuri','joi','vineri','sâmbătă'];
+  var monthNames = ['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+
+  document.getElementById('dateNum').textContent = today.getDate();
+  document.getElementById('monthYear').textContent = monthNames[today.getMonth()].toUpperCase() + ' ' + today.getFullYear();
+
+  var dayNameEl = document.getElementById('dayName');
+  dayNameEl.textContent = state.dayName || dayNames[today.getDay()];
+  dayNameEl.addEventListener('input', function(){
+    state.dayName = dayNameEl.textContent;
+    save();
+  });
+
+  // mood
+  var moodBtns = document.querySelectorAll('#moodRow button');
+  moodBtns.forEach(function(btn){
+    if (btn.getAttribute('data-mood') === state.mood) btn.classList.add('picked');
+    btn.addEventListener('click', function(){
+      var m = btn.getAttribute('data-mood');
+      state.mood = (state.mood === m) ? null : m;
+      moodBtns.forEach(function(b){ b.classList.toggle('picked', b.getAttribute('data-mood') === state.mood); });
+      save();
+    });
+  });
+
+  // schedule 07:00 - 21:00
+  var scheduleEl = document.getElementById('schedule');
+  for (var h = 7; h <= 21; h++){
+    var row = document.createElement('div');
+    row.className = 'schedule-row';
+    var hourLabel = (h < 10 ? '0'+h : h) + ':00';
+    var hourEl = document.createElement('div');
+    hourEl.className = 'hour';
+    hourEl.textContent = hourLabel;
+    var slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.contentEditable = 'true';
+    slot.dataset.placeholder = '—';
+    slot.dataset.hour = hourLabel;
+    slot.textContent = state.schedule[hourLabel] || '';
+    slot.addEventListener('input', function(e){
+      state.schedule[e.target.dataset.hour] = e.target.textContent;
+      save();
+    });
+    row.appendChild(hourEl);
+    row.appendChild(slot);
+    scheduleEl.appendChild(row);
+  }
+
+  // priorities
+  document.querySelectorAll('.priority-text').forEach(function(el){
+    var idx = +el.dataset.idx;
+    el.textContent = state.priorities[idx] || '';
+    el.addEventListener('input', function(){
+      state.priorities[idx] = el.textContent;
+      save();
+    });
+  });
+
+  // todos
+  var todoListEl = document.getElementById('todoList');
+  function renderTodos(){
+    todoListEl.innerHTML = '';
+    state.todos.forEach(function(todo, i){
+      var li = document.createElement('li');
+      li.className = 'todo-item' + (todo.done ? ' done' : '');
+
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = todo.done;
+      cb.addEventListener('change', function(){
+        state.todos[i].done = cb.checked;
+        li.classList.toggle('done', cb.checked);
+        save();
+      });
+
+      var text = document.createElement('div');
+      text.className = 'todo-text';
+      text.contentEditable = 'true';
+      text.textContent = todo.text;
+      text.addEventListener('input', function(){
+        state.todos[i].text = text.textContent;
+        save();
+      });
+
+      var remove = document.createElement('button');
+      remove.className = 'todo-remove';
+      remove.innerHTML = '&times;';
+      remove.title = 'șterge';
+      remove.addEventListener('click', function(){
+        state.todos.splice(i,1);
+        save();
+        renderTodos();
+      });
+
+      li.appendChild(cb);
+      li.appendChild(text);
+      li.appendChild(remove);
+      todoListEl.appendChild(li);
+    });
+  }
+  renderTodos();
+
+  document.getElementById('addTodo').addEventListener('click', function(){
+    state.todos.push({text:'', done:false});
+    save();
+    renderTodos();
+    var items = todoListEl.querySelectorAll('.todo-text');
+    var last = items[items.length-1];
+    if (last){ last.focus(); }
+  });
+
+  // notes
+  var notesEl = document.getElementById('notes');
+  notesEl.textContent = state.notes || '';
+  notesEl.addEventListener('input', function(){
+    state.notes = notesEl.textContent;
+    save();
+  });
+
+  // toolbar
+  document.getElementById('printBtn').addEventListener('click', function(){
+    window.print();
+  });
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    if (!confirm('Golești agenda pentru o zi nouă?')) return;
+    state = {
+      dateKey: todayKey,
+      dayName: dayNames[today.getDay()],
+      mood: null,
+      priorities: ['','',''],
+      todos: [{text:'',done:false},{text:'',done:false},{text:'',done:false}],
+      notes: '',
+      schedule: {}
+    };
+    save();
+    location.reload();
+  });
+
+  save();
+
+  // ---- PWA: service worker + install prompt ----
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('service-worker.js').catch(function(){});
+    });
+  }
+
+  var installBtn = document.getElementById('installBtn');
+  var deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.hidden = false;
+  });
+  installBtn.addEventListener('click', function(){
+    if (!deferredPrompt) return;
+    installBtn.hidden = true;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice && deferredPrompt.userChoice.finally(function(){ deferredPrompt = null; });
+  });
+  window.addEventListener('appinstalled', function(){
+    installBtn.hidden = true;
+  });
+})();
+</script>
+</body>
+</html>

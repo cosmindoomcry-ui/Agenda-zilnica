@@ -1,0 +1,18 @@
+{
+  "name": "Agenda de azi",
+  "short_name": "Agenda",
+  "description": "Agendă zilnică simplă: program orar, priorități, sarcini și notițe.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EEF0E9",
+  "theme_color": "#242F27",
+  "lang": "ro",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
