@@ -1,8 +1,0 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "ro.agendazilnica.app",
-    "sha256_cert_fingerprints": ["43:4F:96:D0:58:37:E5:8C:27:87:2E:15:22:9F:07:BC:85:86:09:E0:20:51:25:9F:82:06:24:96:63:30:F3:E7"]
-  }
-}]
